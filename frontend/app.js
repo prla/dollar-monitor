@@ -45,29 +45,29 @@ function colorize(el, value) {
 // ---------------------------------------------------------------------------
 
 const USD_REGIME_LABELS = {
-  USD_STRENGTH_REAL_RATES: 'real rates',
-  USD_STRENGTH_RISK_OFF: 'risk-off',
-  USD_WEAKNESS_FALLING_REAL_RATES: 'falling real rates',
-  USD_WEAKNESS_HARD_ASSETS: 'hard assets',
-  MIXED: 'mixed',
+  USD_STRENGTH_REAL_RATES: 'bonds paying well, pulling money in',
+  USD_STRENGTH_RISK_OFF: 'investors running to safety',
+  USD_WEAKNESS_FALLING_REAL_RATES: 'bond returns dropping, dollar less attractive',
+  USD_WEAKNESS_HARD_ASSETS: 'money moving to gold and commodities',
+  MIXED: 'no clear driver',
 };
 
 const GOLD_REGIME_LABELS = {
-  GOLD_STRENGTH_REAL_RATES: 'falling real rates',
-  GOLD_STRENGTH_INFLATION: 'inflation',
-  GOLD_STRENGTH_RISK_OFF: 'risk-off',
-  GOLD_WEAKNESS_RISING_REAL_RATES: 'rising real rates',
-  GOLD_WEAKNESS_STRONG_DOLLAR: 'strong dollar',
-  MIXED: 'mixed',
+  GOLD_STRENGTH_REAL_RATES: 'bonds paying less, gold looks better',
+  GOLD_STRENGTH_INFLATION: 'inflation fears pushing money to gold',
+  GOLD_STRENGTH_RISK_OFF: 'fear trade — stocks down, dollar down, gold up',
+  GOLD_WEAKNESS_RISING_REAL_RATES: 'bonds paying more, gold less attractive',
+  GOLD_WEAKNESS_STRONG_DOLLAR: 'strong dollar making gold expensive',
+  MIXED: 'no clear driver',
 };
 
 const MACRO_REGIME_LABELS = {
-  RISK_ON_RATES_RISING: 'Risk On / Rates Rising',
+  RISK_ON_RATES_RISING: 'Tightening',
   REFLATION_OR_STAGFLATION: 'Reflation / Stagflation',
-  STRESS_SAFE_HAVEN: 'Stress / Safe Haven',
-  DISINFLATIONARY_RISK_ON: 'Disinflationary Risk On',
-  GOLD_SPECIFIC_DRIVER: 'Gold-Specific Driver',
-  USD_TECHNICAL_MOVE: 'USD Technical Move',
+  STRESS_SAFE_HAVEN: 'Fear — both safe havens bid',
+  DISINFLATIONARY_RISK_ON: 'Risk on — stocks leading',
+  GOLD_SPECIFIC_DRIVER: 'Gold moving on its own',
+  USD_TECHNICAL_MOVE: 'Dollar moving without confirmation',
   MIXED: 'Mixed',
 };
 
