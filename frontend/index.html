@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dollar Monitor</title>
-  <meta name="description" content="Is the dollar strong or weak, and why? One score, one sentence, five seconds." />
+  <title>Macro Monitor</title>
+  <meta name="description" content="Is the dollar strong or weak? Is gold confirming or diverging? Two scores, one macro read, five seconds." />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,11 +20,13 @@
           colors: {
             bg: '#0a0a0a',
             surface: '#141414',
+            'surface-elevated': '#1a1a1a',
             border: '#2a2a2a',
             primary: '#e8e8e8',
             neutral: '#9e9e9e',
             green: '#00e676',
             red: '#ff1744',
+            amber: '#ffd600',
           },
           fontFamily: {
             mono: ['IBM Plex Mono', 'monospace'],
@@ -67,18 +69,24 @@
       transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
                   transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
     }
+
+    /* Relationship bar entrance */
+    .bar-enter {
+      transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+    }
   </style>
 </head>
 
 <body class="min-h-screen font-mono">
-  <div class="max-w-3xl mx-auto px-4 sm:px-6">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
 
     <!-- ================================================================ -->
     <!-- HEADER                                                           -->
     <!-- ================================================================ -->
     <header class="flex items-center justify-between py-6 border-b border-border">
       <div class="flex items-baseline gap-3">
-        <h1 class="text-lg font-semibold tracking-tight text-primary">Dollar Monitor</h1>
+        <h1 class="text-lg font-semibold tracking-tight text-primary">Macro Monitor</h1>
         <span id="updated-at" class="text-xs text-neutral hidden sm:inline"></span>
       </div>
       <button
@@ -131,87 +139,135 @@
     <!-- ================================================================ -->
     <main id="dashboard" class="hidden">
 
-      <!-- Signal Panel -->
-      <section class="py-12 sm:py-16 text-center border-b border-border">
+      <!-- Two-panel grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-border mt-px">
 
-        <!-- Score -->
-        <div id="score-container" class="opacity-0 translate-y-4 score-enter mb-6">
-          <p class="text-xs text-neutral tracking-widest uppercase mb-3">USD Score</p>
-          <p id="score-value" class="text-6xl md:text-8xl font-bold tracking-tight transition-colors duration-500">
+        <!-- ============================================================ -->
+        <!-- DOLLAR MONITOR PANEL                                         -->
+        <!-- ============================================================ -->
+        <section class="bg-bg py-10 sm:py-14 px-4 sm:px-8 text-center">
+
+          <p class="text-[10px] text-neutral tracking-[0.2em] uppercase mb-8">Dollar Monitor</p>
+
+          <!-- Score -->
+          <div id="usd-score-container" class="opacity-0 translate-y-4 score-enter mb-5">
+            <p class="text-xs text-neutral tracking-widest uppercase mb-3">USD Score</p>
+            <p id="usd-score-value" class="text-5xl md:text-7xl font-bold tracking-tight transition-colors duration-500">
+              &mdash;
+            </p>
+          </div>
+
+          <!-- Signal Badge -->
+          <div class="flex items-center justify-center mb-6">
+            <span id="usd-signal-badge" class="inline-block px-4 py-1.5 rounded-full text-xs tracking-widest font-semibold uppercase">
+              &mdash;
+            </span>
+          </div>
+          <p id="usd-regime-line" class="text-xs tracking-widest uppercase text-neutral mb-6">&mdash;</p>
+
+          <!-- Interpretation -->
+          <p id="usd-interpretation" class="max-w-sm mx-auto text-sm sm:text-base font-serif text-primary/80 leading-relaxed mb-8">
             &mdash;
           </p>
-        </div>
 
-        <!-- Badges -->
-        <div class="flex items-center justify-center gap-3 mb-8">
-          <span id="signal-badge" class="inline-block px-4 py-1.5 rounded-full text-xs tracking-widest font-semibold uppercase">
-            &mdash;
-          </span>
-          <span id="regime-badge" class="inline-block px-3 py-1 rounded-full text-xs tracking-widest text-neutral bg-surface border border-border">
-            &mdash;
-          </span>
-        </div>
+          <!-- Data Strip — Inputs -->
+          <div class="grid grid-cols-2 gap-px bg-border rounded-lg overflow-hidden">
+            <div class="bg-surface p-3 sm:p-4">
+              <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">DXY Index</p>
+              <p id="val-dxy" class="text-base sm:text-lg font-semibold tabular-nums">&mdash;</p>
+            </div>
+            <div class="bg-surface p-3 sm:p-4">
+              <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">10Y Yield</p>
+              <p id="val-10y" class="text-base sm:text-lg font-semibold tabular-nums">&mdash;</p>
+            </div>
+            <div class="bg-surface p-3 sm:p-4">
+              <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">Breakeven</p>
+              <p id="val-breakeven" class="text-base sm:text-lg font-semibold tabular-nums">&mdash;</p>
+            </div>
+            <div class="bg-surface p-3 sm:p-4">
+              <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">S&amp;P 500</p>
+              <p id="val-spx" class="text-base sm:text-lg font-semibold tabular-nums">&mdash;</p>
+            </div>
+          </div>
 
-        <!-- Interpretation -->
-        <p id="interpretation" class="max-w-lg mx-auto text-base sm:text-lg font-serif text-primary/80 leading-relaxed">
-          &mdash;
-        </p>
+          <!-- Data Strip — Derived -->
+          <div class="grid grid-cols-3 gap-px bg-border rounded-lg overflow-hidden mt-px">
+            <div class="bg-surface p-3 sm:p-4">
+              <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">Real Yield</p>
+              <p id="val-real-yield" class="text-base sm:text-lg font-semibold tabular-nums">&mdash;</p>
+            </div>
+            <div class="bg-surface p-3 sm:p-4">
+              <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">DXY Trend</p>
+              <p id="val-dxy-trend" class="text-base sm:text-lg font-semibold tabular-nums">&mdash;</p>
+            </div>
+            <div class="bg-surface p-3 sm:p-4">
+              <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">SPX Trend</p>
+              <p id="val-spx-trend" class="text-base sm:text-lg font-semibold tabular-nums">&mdash;</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- GOLD MONITOR PANEL                                           -->
+        <!-- ============================================================ -->
+        <section class="bg-bg py-10 sm:py-14 px-4 sm:px-8 text-center">
+
+          <p class="text-[10px] text-neutral tracking-[0.2em] uppercase mb-8">Gold Monitor</p>
+
+          <!-- Score -->
+          <div id="gold-score-container" class="opacity-0 translate-y-4 score-enter mb-5">
+            <p class="text-xs text-neutral tracking-widest uppercase mb-3">Gold Score</p>
+            <p id="gold-score-value" class="text-5xl md:text-7xl font-bold tracking-tight transition-colors duration-500">
+              &mdash;
+            </p>
+          </div>
+
+          <!-- Signal Badge -->
+          <div class="flex items-center justify-center mb-6">
+            <span id="gold-signal-badge" class="inline-block px-4 py-1.5 rounded-full text-xs tracking-widest font-semibold uppercase">
+              &mdash;
+            </span>
+          </div>
+          <p id="gold-regime-line" class="text-xs tracking-widest uppercase text-neutral mb-6">&mdash;</p>
+
+          <!-- Interpretation -->
+          <p id="gold-interpretation" class="max-w-sm mx-auto text-sm sm:text-base font-serif text-primary/80 leading-relaxed mb-8">
+            &mdash;
+          </p>
+
+          <!-- Data Strip — Inputs -->
+          <div class="grid grid-cols-1 gap-px bg-border rounded-lg overflow-hidden">
+            <div class="bg-surface p-3 sm:p-4">
+              <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">Gold (London Fix)</p>
+              <p id="val-gold" class="text-base sm:text-lg font-semibold tabular-nums">&mdash;</p>
+            </div>
+          </div>
+
+          <!-- Data Strip — Derived -->
+          <div class="grid grid-cols-2 gap-px bg-border rounded-lg overflow-hidden mt-px">
+            <div class="bg-surface p-3 sm:p-4">
+              <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">Gold Trend</p>
+              <p id="val-gold-trend" class="text-base sm:text-lg font-semibold tabular-nums">&mdash;</p>
+            </div>
+            <div class="bg-surface p-3 sm:p-4">
+              <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">Breakeven Trend</p>
+              <p id="val-breakeven-trend" class="text-base sm:text-lg font-semibold tabular-nums">&mdash;</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- RELATIONSHIP BAR                                                -->
+      <!-- ============================================================== -->
+      <section id="relationship-bar" class="opacity-0 translate-y-3 bar-enter bg-surface-elevated border border-border rounded-lg mt-4 py-8 px-6 sm:px-10 text-center">
+        <p class="text-[10px] text-neutral tracking-[0.2em] uppercase mb-4">Cross-Monitor Macro Regime</p>
+        <p id="macro-regime-label" class="text-xl sm:text-2xl font-bold tracking-tight text-primary mb-4">&mdash;</p>
+        <p id="macro-interpretation" class="max-w-xl mx-auto text-sm sm:text-base font-serif text-primary/70 leading-relaxed">&mdash;</p>
       </section>
 
-      <!-- Data Strip -->
-      <section class="py-8">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden">
-
-          <!-- DXY -->
-          <div class="bg-surface p-4 sm:p-5">
-            <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">DXY Index</p>
-            <p id="val-dxy" class="text-lg sm:text-xl font-semibold tabular-nums">&mdash;</p>
-          </div>
-
-          <!-- 10Y Yield -->
-          <div class="bg-surface p-4 sm:p-5">
-            <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">10Y Yield</p>
-            <p id="val-10y" class="text-lg sm:text-xl font-semibold tabular-nums">&mdash;</p>
-          </div>
-
-          <!-- Breakeven -->
-          <div class="bg-surface p-4 sm:p-5">
-            <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">10Y Breakeven</p>
-            <p id="val-breakeven" class="text-lg sm:text-xl font-semibold tabular-nums">&mdash;</p>
-          </div>
-
-          <!-- SPX -->
-          <div class="bg-surface p-4 sm:p-5">
-            <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">S&amp;P 500</p>
-            <p id="val-spx" class="text-lg sm:text-xl font-semibold tabular-nums">&mdash;</p>
-          </div>
-        </div>
-
-        <!-- Derived values -->
-        <div class="grid grid-cols-3 gap-px bg-border rounded-lg overflow-hidden mt-px">
-
-          <!-- Real Yield -->
-          <div class="bg-surface p-4 sm:p-5">
-            <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">Real Yield</p>
-            <p id="val-real-yield" class="text-lg sm:text-xl font-semibold tabular-nums">&mdash;</p>
-          </div>
-
-          <!-- DXY Trend -->
-          <div class="bg-surface p-4 sm:p-5">
-            <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">DXY Trend</p>
-            <p id="val-dxy-trend" class="text-lg sm:text-xl font-semibold tabular-nums">&mdash;</p>
-          </div>
-
-          <!-- SPX Trend -->
-          <div class="bg-surface p-4 sm:p-5">
-            <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">SPX Trend</p>
-            <p id="val-spx-trend" class="text-lg sm:text-xl font-semibold tabular-nums">&mdash;</p>
-          </div>
-        </div>
-
-        <!-- Data date -->
-        <p id="data-date" class="text-xs text-neutral/70 text-right mt-3 tracking-wide font-medium"></p>
-      </section>
+      <!-- Data date -->
+      <p id="data-date" class="text-xs text-neutral/70 text-right mt-3 tracking-wide font-medium mb-2"></p>
     </main>
 
     <!-- ================================================================ -->
@@ -224,98 +280,127 @@
         <span class="text-border">|</span>
         <a href="#" id="methodology-link" class="hover:text-primary transition-colors">How it works</a>
       </div>
-      <a href="https://hagakure.substack.com" target="_blank" rel="noopener" class="hover:text-primary transition-colors">
-        Daily macro + AI analysis &rarr; Hagakure
-      </a>
     </footer>
   </div>
 
-  <!-- ================================================================== -->
-  <!-- METHODOLOGY MODAL                                                  -->
-  <!-- ================================================================== -->
+  <!-- ==================================================================== -->
+  <!-- METHODOLOGY MODAL                                                    -->
+  <!-- ==================================================================== -->
   <div id="methodology-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
     <!-- Backdrop -->
     <div id="modal-backdrop" class="absolute inset-0 bg-black/70 opacity-0 transition-opacity duration-200"></div>
 
     <!-- Content -->
-    <div id="modal-content" class="relative z-10 w-full max-w-xl max-h-[85vh] overflow-y-auto bg-surface border border-border rounded-xl p-6 sm:p-8 opacity-0 scale-95 transition-all duration-200">
+    <div id="modal-content" class="relative z-10 w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-surface border border-border rounded-xl p-6 sm:p-8 opacity-0 scale-95 transition-all duration-200">
       <button id="modal-close" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-border/50 text-neutral hover:text-primary transition-colors">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
 
-      <h2 class="text-lg font-semibold text-primary mb-6">How Dollar Monitor Works</h2>
+      <h2 class="text-lg font-semibold text-primary mb-6">How Macro Monitor Works</h2>
 
-      <div class="space-y-5 text-sm text-primary/80 font-serif leading-relaxed">
+      <div class="space-y-6 text-sm text-primary/80 font-serif leading-relaxed">
+
+        <!-- Dollar Monitor -->
         <div>
-          <h3 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">The Four Inputs</h3>
-          <p>
-            Dollar Monitor tracks four data points from the Federal Reserve Economic Data (FRED) system, updated daily:
+          <h3 class="font-mono text-xs text-green tracking-widest uppercase mb-3 font-semibold">Dollar Monitor</h3>
+
+          <div class="space-y-4">
+            <div>
+              <h4 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">Inputs</h4>
+              <ul class="space-y-1 text-primary/60">
+                <li><span class="font-mono text-primary/80">DXY</span> &mdash; Trade-Weighted U.S. Dollar Index (DTWEXBGS)</li>
+                <li><span class="font-mono text-primary/80">10Y Yield</span> &mdash; 10-Year Treasury Constant Maturity Rate</li>
+                <li><span class="font-mono text-primary/80">Breakeven</span> &mdash; 10-Year Breakeven Inflation Rate</li>
+                <li><span class="font-mono text-primary/80">S&amp;P 500</span> &mdash; S&amp;P 500 Index</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">USD Score</h4>
+              <p>
+                A weighted composite of four normalized trend signals: DXY trend direction (40%), real yield trend (30%), inverted gold trend (20%), and inverted S&amp;P 500 trend (10%). Trends are computed as the percentage difference between 20-day and 100-day moving averages, clamped to [-5%, 5%] and normalized to [-1, 1]. Real yield uses z-score normalization.
+              </p>
+              <p class="mt-2">
+                A score above +0.20 is <span class="font-mono text-green">STRONG USD</span>. Below &minus;0.20 is <span class="font-mono text-red">WEAK USD</span>. In between is <span class="font-mono text-neutral">NEUTRAL</span>.
+              </p>
+            </div>
+
+            <div>
+              <h4 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">USD Regimes</h4>
+              <ul class="space-y-2 text-primary/60">
+                <li><span class="font-mono text-primary/80">REAL RATES</span> &mdash; DXY trending up with rising real yields. Dollar strength from rate differentials.</li>
+                <li><span class="font-mono text-primary/80">RISK-OFF</span> &mdash; DXY trending up while stocks fall. Classic flight-to-safety.</li>
+                <li><span class="font-mono text-primary/80">FALLING REAL RATES</span> &mdash; DXY trending down with declining real yields. Rate differential compressing.</li>
+                <li><span class="font-mono text-primary/80">HARD ASSETS</span> &mdash; DXY trending down while gold trends up. Capital rotating to hard assets.</li>
+                <li><span class="font-mono text-primary/80">MIXED</span> &mdash; No dominant pattern. Signals conflicting.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gold Monitor -->
+        <div class="pt-4 border-t border-border">
+          <h3 class="font-mono text-xs text-amber tracking-widest uppercase mb-3 font-semibold">Gold Monitor</h3>
+
+          <div class="space-y-4">
+            <div>
+              <h4 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">Inputs</h4>
+              <ul class="space-y-1 text-primary/60">
+                <li><span class="font-mono text-primary/80">Gold</span> &mdash; London Gold Fixing Price (GOLDAMGBD228NLBM)</li>
+                <li>Plus shared inputs: 10Y Yield, Breakeven, S&amp;P 500, DXY</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">Gold Score</h4>
+              <p>
+                A weighted composite: gold trend (40%), inverted real yield trend (30%, falling real yields = bullish gold), breakeven trend (20%, rising inflation expectations = bullish gold), and inverted DXY trend (10%, weak dollar = tailwind).
+              </p>
+              <p class="mt-2">
+                A score above +0.20 is <span class="font-mono text-amber">STRONG GOLD</span>. Below &minus;0.20 is <span class="font-mono text-red">WEAK GOLD</span>. In between is <span class="font-mono text-neutral">NEUTRAL</span>.
+              </p>
+            </div>
+
+            <div>
+              <h4 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">Gold Regimes</h4>
+              <ul class="space-y-2 text-primary/60">
+                <li><span class="font-mono text-primary/80">REAL RATES</span> &mdash; Gold trending up while real yields fall. Classic gold bull case.</li>
+                <li><span class="font-mono text-primary/80">INFLATION</span> &mdash; Gold trending up with rising breakeven inflation. Inflation hedge bid.</li>
+                <li><span class="font-mono text-primary/80">RISK-OFF</span> &mdash; Gold up while stocks and dollar both fall. Fear-driven safe haven.</li>
+                <li><span class="font-mono text-primary/80">RISING REAL RATES</span> &mdash; Gold trending down as real yields rise. Opportunity cost headwind.</li>
+                <li><span class="font-mono text-primary/80">STRONG DOLLAR</span> &mdash; Gold trending down while DXY trends up. Dollar headwind.</li>
+                <li><span class="font-mono text-primary/80">MIXED</span> &mdash; No dominant pattern.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Relationship -->
+        <div class="pt-4 border-t border-border">
+          <h3 class="font-mono text-xs text-primary tracking-widest uppercase mb-3 font-semibold">Reading the Relationship</h3>
+
+          <p class="mb-3">
+            The cross-monitor macro regime is derived from the combination of the USD and Gold signals. Neither monitor tells the full story alone &mdash; the relationship between them reveals the macro environment.
           </p>
-          <ul class="mt-2 space-y-1 text-primary/60">
-            <li><span class="font-mono text-primary/80">DXY</span> &mdash; Trade-Weighted U.S. Dollar Index (DTWEXBGS)</li>
-            <li><span class="font-mono text-primary/80">10Y Yield</span> &mdash; 10-Year Treasury Constant Maturity Rate</li>
-            <li><span class="font-mono text-primary/80">Breakeven</span> &mdash; 10-Year Breakeven Inflation Rate</li>
-            <li><span class="font-mono text-primary/80">S&amp;P 500</span> &mdash; S&amp;P 500 Index</li>
+
+          <ul class="space-y-2 text-primary/60">
+            <li><span class="font-mono text-primary/80">RISK ON / RATES RISING</span> &mdash; Strong dollar + weak gold. Classic tightening: rates up, dollar up, gold suppressed.</li>
+            <li><span class="font-mono text-primary/80">REFLATION / STAGFLATION</span> &mdash; Weak dollar + strong gold. Dollar weakening as gold confirms inflation or stress.</li>
+            <li><span class="font-mono text-primary/80">STRESS / SAFE HAVEN</span> &mdash; Both strong. Unusual &mdash; both acting as safe havens. Fear signal.</li>
+            <li><span class="font-mono text-primary/80">DISINFLATIONARY RISK ON</span> &mdash; Both weak. Risk assets leading; neither dollar nor gold bid.</li>
+            <li><span class="font-mono text-primary/80">GOLD-SPECIFIC DRIVER</span> &mdash; Neutral dollar + strong gold. Gold moving on idiosyncratic factors.</li>
+            <li><span class="font-mono text-primary/80">USD TECHNICAL MOVE</span> &mdash; Strong dollar + neutral gold. Dollar strength without gold confirmation.</li>
+            <li><span class="font-mono text-primary/80">MIXED</span> &mdash; No clear combined read.</li>
           </ul>
         </div>
 
-        <div>
-          <h3 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">Real Yield</h3>
+        <!-- Interpretation -->
+        <div class="pt-4 border-t border-border">
+          <h4 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">Interpretation</h4>
           <p>
-            Real yield is the 10-year Treasury yield minus the 10-year breakeven inflation rate. It tells you what investors actually earn after expected inflation. Rising real yields attract capital to dollar-denominated assets, strengthening the dollar.
-          </p>
-        </div>
-
-        <div>
-          <h3 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">Trend Signals</h3>
-          <p>
-            For DXY and S&amp;P 500, we compute a trend signal as the percentage difference between the 20-day and 100-day moving averages. A positive value means short-term momentum is above the longer-term trend &mdash; an uptrend. Negative means downtrend.
-          </p>
-        </div>
-
-        <div>
-          <h3 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">USD Score</h3>
-          <p>
-            The USD Score is a weighted composite of three normalized signals:
-          </p>
-          <ul class="mt-2 space-y-1 text-primary/60">
-            <li><span class="font-mono text-primary/80">40%</span> &mdash; Real yield (z-score normalized)</li>
-            <li><span class="font-mono text-primary/80">30%</span> &mdash; DXY trend direction</li>
-            <li><span class="font-mono text-primary/80">30%</span> &mdash; Inverted S&amp;P 500 trend (stocks down = dollar up)</li>
-          </ul>
-          <p class="mt-2">
-            A score above +0.20 is classified as <span class="font-mono text-green">STRONG USD</span>. Below &minus;0.20 is <span class="font-mono text-red">WEAK USD</span>. In between is <span class="font-mono text-neutral">NEUTRAL</span>.
-          </p>
-        </div>
-
-        <div>
-          <h3 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">Regime Classification</h3>
-          <p>The regime label describes <em>why</em> the dollar is behaving the way it is:</p>
-          <ul class="mt-2 space-y-2 text-primary/60">
-            <li>
-              <span class="font-mono text-primary/80">RISK-OFF DOLLAR RALLY</span> &mdash; Real yields rising while stocks fall. Classic flight-to-safety.
-            </li>
-            <li>
-              <span class="font-mono text-primary/80">YIELD-DRIVEN STRENGTH</span> &mdash; High or rising real yields with DXY trending up. Dollar strength from rate differentials.
-            </li>
-            <li>
-              <span class="font-mono text-primary/80">STAGFLATION WATCH</span> &mdash; Real yields rising, stocks falling, <em>and</em> inflation expectations rising. The worst-case macro scenario.
-            </li>
-            <li>
-              <span class="font-mono text-primary/80">RISK-ON WEAKNESS</span> &mdash; Real yields falling while stocks rise. Capital flowing out of safe havens.
-            </li>
-            <li>
-              <span class="font-mono text-primary/80">NEUTRAL / MIXED</span> &mdash; No dominant pattern. Signals conflicting.
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <h3 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">Interpretation</h3>
-          <p>
-            The one-sentence interpretation is generated by Claude (Anthropic's AI), which receives all raw and derived data and produces a concise explanation of what is driving the dollar at this moment.
+            Each monitor and the relationship bar includes a one-sentence interpretation generated by Claude (Anthropic's AI), which receives all raw and derived data and produces a concise explanation of the current macro dynamics.
           </p>
         </div>
 
