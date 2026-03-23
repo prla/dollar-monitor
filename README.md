@@ -4,7 +4,7 @@ A single-page dashboard that answers one question in five seconds: **"Is the dol
 
 Built for macro-aware individuals — investors, analysts, founders — who want signal without noise. One score, one regime label, one sentence of AI-generated interpretation. Open it, read it, close it.
 
-![Dollar Monitor Screenshot](https://github.com/prla/dollar-monitor/assets/screenshot.png)
+![Dollar Monitor Screenshot](screenshot.png)
 
 ## How it works
 
