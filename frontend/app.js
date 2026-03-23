@@ -139,6 +139,19 @@ function renderSparkline(containerId, history, accentColor) {
   container.innerHTML = svg;
 }
 
+function formatSparklineLabel(history) {
+  if (!history || history.length < 2) return 'Score History';
+  const first = history[0].date;
+  const last = history[history.length - 1].date;
+  // Format as "Dec 1 — Mar 20"
+  const fmt = (d) => {
+    const [y, m, day] = d.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(m) - 1]} ${parseInt(day)}`;
+  };
+  return `${fmt(first)} — ${fmt(last)}`;
+}
+
 function getSparklineColor(score, positiveColor, negativeColor) {
   if (score > 0) return positiveColor;
   if (score < 0) return negativeColor;
@@ -203,6 +216,7 @@ function render() {
   if (d.dollar.history && d.dollar.history.length > 1) {
     const usdColor = getSparklineColor(d.dollar.score, '#00e676', '#ff1744');
     renderSparkline('usd-sparkline', d.dollar.history, usdColor);
+    $('#usd-sparkline-container .sparkline-label').textContent = formatSparklineLabel(d.dollar.history);
     const usdSparkContainer = $('#usd-sparkline-container');
     setTimeout(() => {
       usdSparkContainer.classList.remove('opacity-0');
@@ -258,6 +272,7 @@ function render() {
   if (d.gold.history && d.gold.history.length > 1) {
     const goldColor = getSparklineColor(d.gold.score, '#ffd600', '#ff1744');
     renderSparkline('gold-sparkline', d.gold.history, goldColor);
+    $('#gold-sparkline-container .sparkline-label').textContent = formatSparklineLabel(d.gold.history);
     const goldSparkContainer = $('#gold-sparkline-container');
     setTimeout(() => {
       goldSparkContainer.classList.remove('opacity-0');
