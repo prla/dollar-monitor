@@ -136,6 +136,83 @@ function round(n, d) {
 }
 
 // ---------------------------------------------------------------------------
+// Rolling score history
+// ---------------------------------------------------------------------------
+
+function computeScoreHistory(dxySeries, us10ySeries, breakevenSeries, spxSeries, goldSeries) {
+  const dxyValues = dxySeries.map((d) => d.value);
+  const us10yValues = us10ySeries.map((d) => d.value);
+  const breakevenValues = breakevenSeries.map((d) => d.value);
+  const spxValues = spxSeries.map((d) => d.value);
+  const goldValues = goldSeries.map((d) => d.value);
+
+  // Build aligned real-yield series
+  const minLen = Math.min(us10yValues.length, breakevenValues.length);
+  const realYieldAll = [];
+  for (let i = 0; i < minLen; i++) {
+    const yIdx = us10yValues.length - minLen + i;
+    const bIdx = breakevenValues.length - minLen + i;
+    realYieldAll.push(us10yValues[yIdx] - breakevenValues[bIdx]);
+  }
+
+  // We need at least 100 data points for MA100; start from index 100
+  const startIdx = 100;
+  const usdHistory = [];
+  const goldHistory = [];
+
+  // Use the shortest series length as the iteration bound
+  const maxLen = Math.min(
+    dxyValues.length,
+    spxValues.length,
+    realYieldAll.length,
+    goldValues.length,
+    breakevenValues.length
+  );
+
+  for (let i = startIdx; i < maxLen; i++) {
+    // Slice up to and including index i
+    const dxySlice = dxyValues.slice(0, i + 1);
+    const spxSlice = spxValues.slice(0, i + 1);
+    const goldSlice = goldValues.slice(0, i + 1);
+    const breakevenSlice = breakevenValues.slice(0, i + 1);
+
+    // Real yield slice — align to the same end index
+    const ryOffset = realYieldAll.length - maxLen;
+    const rySlice = realYieldAll.slice(0, ryOffset + i + 1);
+
+    // Compute trends
+    const dxyT = trendSignal(dxySlice);
+    const spxT = trendSignal(spxSlice);
+    const ryT = trendSignal(rySlice);
+    const goldT = blendedTrend(goldSlice);
+    const beT = trendSignal(breakevenSlice);
+
+    // Normalize
+    const ryZ = zScore(rySlice[rySlice.length - 1], rySlice);
+    const nRy = clamp(ryZ, -2, 2) / 2;
+    const nDxy = dxyT !== null ? clamp(dxyT / 5, -1, 1) : 0;
+    const nSpx = spxT !== null ? clamp(spxT / 5, -1, 1) : 0;
+    const nGold = goldT !== null ? clamp(goldT / 5, -1, 1) : 0;
+    const nBe = beT !== null ? clamp(beT / 5, -1, 1) : 0;
+    const nRyT = ryT !== null ? clamp(ryT / 5, -1, 1) : 0;
+
+    // USD score
+    const usd = 0.4 * nDxy + 0.3 * nRyT + 0.2 * -nGold + 0.1 * -nSpx;
+
+    // Gold score
+    const gld = 0.4 * nGold + 0.3 * -nRyT + 0.2 * nBe + 0.1 * -nDxy;
+
+    // Use dxy series date (aligned to the same index)
+    const date = dxySeries[i]?.date || '';
+
+    usdHistory.push({ date, score: round(usd, 3) });
+    goldHistory.push({ date, score: round(gld, 3) });
+  }
+
+  return { usdHistory, goldHistory };
+}
+
+// ---------------------------------------------------------------------------
 // Core computation
 // ---------------------------------------------------------------------------
 
@@ -416,6 +493,17 @@ export default {
           spxSeries,
           goldSeries
         );
+
+        // Compute rolling score history
+        const { usdHistory, goldHistory } = computeScoreHistory(
+          dxySeries,
+          us10ySeries,
+          breakevenSeries,
+          spxSeries,
+          goldSeries
+        );
+        data.dollar.history = usdHistory;
+        data.gold.history = goldHistory;
 
         // Get Claude interpretations
         const anthropicKey = env.ANTHROPIC_API_KEY;

@@ -72,6 +72,80 @@ const MACRO_REGIME_LABELS = {
 };
 
 // ---------------------------------------------------------------------------
+// Sparkline SVG rendering
+// ---------------------------------------------------------------------------
+
+function renderSparkline(containerId, history, accentColor) {
+  const container = document.getElementById(containerId);
+  if (!container || !history || history.length < 2) return;
+
+  const width = 320;
+  const height = 80;
+  const padX = 1;
+  const padY = 4;
+
+  const yMin = -1;
+  const yMax = 1;
+
+  // Map data to pixel coordinates
+  const points = history.map((d, i) => {
+    const x = padX + (i / (history.length - 1)) * (width - 2 * padX);
+    const y = padY + ((yMax - d.score) / (yMax - yMin)) * (height - 2 * padY);
+    return { x, y };
+  });
+
+  // Build smooth SVG path using Catmull-Rom to Bezier conversion
+  function catmullRomToBezier(pts) {
+    const d = [`M ${pts[0].x},${pts[0].y}`];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[Math.max(0, i - 1)];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[Math.min(pts.length - 1, i + 2)];
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      d.push(`C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`);
+    }
+    return d.join(' ');
+  }
+
+  const linePath = catmullRomToBezier(points);
+
+  // Area fill path — line path + close along bottom
+  const lastPt = points[points.length - 1];
+  const firstPt = points[0];
+  // Zero line y position
+  const zeroY = padY + ((yMax - 0) / (yMax - yMin)) * (height - 2 * padY);
+  const areaPath = linePath + ` L ${lastPt.x},${zeroY} L ${firstPt.x},${zeroY} Z`;
+
+  const gradientId = `${containerId}-grad`;
+
+  const svg = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" style="width:100%;height:${height}px;display:block;">
+  <defs>
+    <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${accentColor}" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="${accentColor}" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <line x1="${padX}" y1="${zeroY}" x2="${width - padX}" y2="${zeroY}" stroke="#2a2a2a" stroke-width="0.5" stroke-dasharray="4,3"/>
+  <path d="${areaPath}" fill="url(#${gradientId})" stroke="none"/>
+  <path d="${linePath}" fill="none" stroke="${accentColor}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>`;
+
+  container.innerHTML = svg;
+}
+
+function getSparklineColor(score, positiveColor, negativeColor) {
+  if (score > 0) return positiveColor;
+  if (score < 0) return negativeColor;
+  return '#9e9e9e';
+}
+
+// ---------------------------------------------------------------------------
 // Rendering
 // ---------------------------------------------------------------------------
 
@@ -125,6 +199,17 @@ function render() {
 
   $('#usd-interpretation').textContent = d.dollar.interpretation;
 
+  // Dollar sparkline
+  if (d.dollar.history && d.dollar.history.length > 1) {
+    const usdColor = getSparklineColor(d.dollar.score, '#00e676', '#ff1744');
+    renderSparkline('usd-sparkline', d.dollar.history, usdColor);
+    const usdSparkContainer = $('#usd-sparkline-container');
+    setTimeout(() => {
+      usdSparkContainer.classList.remove('opacity-0');
+      usdSparkContainer.classList.add('opacity-100');
+    }, 50);
+  }
+
   // Dollar data strip
   $('#val-dxy').textContent = d.dollar.inputs.dxy.toFixed(2);
   $('#val-10y').textContent = d.dollar.inputs.us10y_yield.toFixed(2) + '%';
@@ -168,6 +253,17 @@ function render() {
   $('#gold-regime-line').textContent = `${goldSignalWord} Gold — ${GOLD_REGIME_LABELS[d.gold.regime] || d.gold.regime.toLowerCase()}`;
 
   $('#gold-interpretation').textContent = d.gold.interpretation;
+
+  // Gold sparkline
+  if (d.gold.history && d.gold.history.length > 1) {
+    const goldColor = getSparklineColor(d.gold.score, '#ffd600', '#ff1744');
+    renderSparkline('gold-sparkline', d.gold.history, goldColor);
+    const goldSparkContainer = $('#gold-sparkline-container');
+    setTimeout(() => {
+      goldSparkContainer.classList.remove('opacity-0');
+      goldSparkContainer.classList.add('opacity-100');
+    }, 150);
+  }
 
   // Gold data strip
   $('#val-gold').textContent = '$' + d.gold.inputs.gold.toLocaleString('en-US', {
@@ -263,6 +359,16 @@ async function fetchData() {
   if (bar) {
     bar.classList.add('opacity-0', 'translate-y-3');
     bar.classList.remove('opacity-100', 'translate-y-0');
+  }
+  const usdSpark = $('#usd-sparkline-container');
+  const goldSpark = $('#gold-sparkline-container');
+  if (usdSpark) {
+    usdSpark.classList.add('opacity-0');
+    usdSpark.classList.remove('opacity-100');
+  }
+  if (goldSpark) {
+    goldSpark.classList.add('opacity-0');
+    goldSpark.classList.remove('opacity-100');
   }
 
   render();
