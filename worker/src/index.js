@@ -188,8 +188,6 @@ function computeScoreHistory(dxySeries, us10ySeries, breakevenSeries, spxSeries,
     const beT = trendSignal(breakevenSlice);
 
     // Normalize
-    const ryZ = zScore(rySlice[rySlice.length - 1], rySlice);
-    const nRy = clamp(ryZ, -2, 2) / 2;
     const nDxy = dxyT !== null ? clamp(dxyT / 5, -1, 1) : 0;
     const nSpx = spxT !== null ? clamp(spxT / 5, -1, 1) : 0;
     const nGold = goldT !== null ? clamp(goldT / 5, -1, 1) : 0;
@@ -247,9 +245,7 @@ function computeAll(dxySeries, us10ySeries, breakevenSeries, spxSeries, goldSeri
   const goldTrend = blendedTrend(goldValues);
   const breakevenTrend = trendSignal(breakevenValues);
 
-  // Normalizations — clamp trend to [-5,5] → [-1,1]; z-score for real yield
-  const realYieldZ = zScore(realYield, realYieldSeries);
-  const normRealYield = clamp(realYieldZ, -2, 2) / 2;
+  // Normalizations — clamp trend to [-5,5] → [-1,1]
   const normDxyTrend = dxyTrend !== null ? clamp(dxyTrend / 5, -1, 1) : 0;
   const normSpxTrend = spxTrend !== null ? clamp(spxTrend / 5, -1, 1) : 0;
   const normGoldTrend = goldTrend !== null ? clamp(goldTrend / 5, -1, 1) : 0;
@@ -331,7 +327,7 @@ function computeAll(dxySeries, us10ySeries, breakevenSeries, spxSeries, goldSeri
   const goldNeutral = goldSignal === 'NEUTRAL';
 
   let macroRegime;
-  if (usdStrong && goldWeak) macroRegime = 'RISK_ON_RATES_RISING';
+  if (usdStrong && goldWeak) macroRegime = 'TIGHTENING';
   else if (usdWeak && goldStrong) macroRegime = 'REFLATION_OR_STAGFLATION';
   else if (usdStrong && goldStrong) macroRegime = 'STRESS_SAFE_HAVEN';
   else if (usdWeak && goldWeak) macroRegime = 'DISINFLATIONARY_RISK_ON';
@@ -339,10 +335,11 @@ function computeAll(dxySeries, us10ySeries, breakevenSeries, spxSeries, goldSeri
   else if (usdStrong && goldNeutral) macroRegime = 'USD_TECHNICAL_MOVE';
   else macroRegime = 'MIXED';
 
-  // Dates
-  const latestDate =
-    dxySeries[dxySeries.length - 1]?.date ||
-    us10ySeries[us10ySeries.length - 1]?.date;
+  // Dates — use the most recent across all series
+  const allDates = [dxySeries, us10ySeries, breakevenSeries, spxSeries, goldSeries]
+    .map((s) => s[s.length - 1]?.date)
+    .filter(Boolean);
+  const latestDate = allDates.sort().pop();
 
   return {
     date: latestDate,

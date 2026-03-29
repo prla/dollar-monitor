@@ -62,7 +62,7 @@ const GOLD_REGIME_LABELS = {
 };
 
 const MACRO_REGIME_LABELS = {
-  RISK_ON_RATES_RISING: 'Tightening',
+  TIGHTENING: 'Tightening',
   REFLATION_OR_STAGFLATION: 'Reflation / Stagflation',
   STRESS_SAFE_HAVEN: 'Fear — both safe havens bid',
   DISINFLATIONARY_RISK_ON: 'Risk on — stocks leading',
@@ -307,7 +307,7 @@ function render() {
   }, 300);
 
   // Date
-  $('#data-date').textContent = d.date ? `FRED data as of ${d.date} (one business day lag)` : '';
+  $('#data-date').textContent = 'Data from FRED + Yahoo Finance. FRED updates on business days with ~1 day lag.';
 
   // Updated at
   if (d.updated_at) {
