@@ -278,6 +278,49 @@
         <p id="macro-interpretation" class="max-w-xl mx-auto text-sm sm:text-base font-serif text-primary/70 leading-relaxed">&mdash;</p>
       </section>
 
+      <!-- ============================================================== -->
+      <!-- CRUDE OIL EXPORTS TRACKER                                      -->
+      <!-- ============================================================== -->
+      <section class="bg-surface border border-border rounded-lg mt-4 py-6 px-6 sm:px-10">
+        <p class="text-[10px] text-neutral tracking-[0.2em] uppercase mb-4 text-center">Crude Oil Exports</p>
+        <div id="crude-sparkline-container" class="opacity-0 score-enter mb-4">
+          <p class="text-[10px] text-neutral tracking-widest uppercase mb-2 text-center"><span class="sparkline-label">Export History</span></p>
+          <div id="crude-sparkline" class="mx-auto" style="max-width: 100%;"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-px bg-border rounded-lg overflow-hidden">
+          <div class="bg-surface-elevated p-3 sm:p-4 text-center">
+            <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">Weekly Exports</p>
+            <p id="val-crude-exports" class="text-base sm:text-lg font-semibold tabular-nums">&mdash;</p>
+          </div>
+          <div class="bg-surface-elevated p-3 sm:p-4 text-center">
+            <p class="text-[10px] text-neutral tracking-widest uppercase mb-1">1M vs 3M Trend</p>
+            <p id="val-crude-trend" class="text-base sm:text-lg font-semibold tabular-nums">&mdash;</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- REAL YIELD CHART                                                -->
+      <!-- ============================================================== -->
+      <section class="bg-surface border border-border rounded-lg mt-4 py-6 px-6 sm:px-10">
+        <p class="text-[10px] text-neutral tracking-[0.2em] uppercase mb-4 text-center">10Y Real Yield</p>
+        <div id="realyield-sparkline-container" class="opacity-0 score-enter">
+          <p class="text-[10px] text-neutral tracking-widest uppercase mb-2 text-center"><span class="sparkline-label">History</span></p>
+          <div id="realyield-sparkline" class="mx-auto" style="max-width: 100%;"></div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- DXY CHART                                                       -->
+      <!-- ============================================================== -->
+      <section class="bg-surface border border-border rounded-lg mt-4 py-6 px-6 sm:px-10">
+        <p class="text-[10px] text-neutral tracking-[0.2em] uppercase mb-4 text-center">DXY Index</p>
+        <div id="dxy-sparkline-container" class="opacity-0 score-enter">
+          <p class="text-[10px] text-neutral tracking-widest uppercase mb-2 text-center"><span class="sparkline-label">History</span></p>
+          <div id="dxy-sparkline" class="mx-auto" style="max-width: 100%;"></div>
+        </div>
+      </section>
+
       <!-- Data date -->
       <p id="data-date" class="text-xs text-neutral/70 text-right mt-3 tracking-wide font-medium mb-2"></p>
     </main>
@@ -406,6 +449,22 @@
             <li><span class="font-mono text-primary/80">USD TECHNICAL MOVE</span> &mdash; Strong dollar + neutral gold. Dollar strength without gold confirmation.</li>
             <li><span class="font-mono text-primary/80">MIXED</span> &mdash; No clear combined read.</li>
           </ul>
+        </div>
+
+        <!-- Crude Oil Exports -->
+        <div class="pt-4 border-t border-border">
+          <h3 class="font-mono text-xs text-primary tracking-widest uppercase mb-3 font-semibold">Crude Oil Exports</h3>
+          <div class="space-y-4">
+            <div>
+              <h4 class="font-mono text-xs text-neutral tracking-widest uppercase mb-2">Source</h4>
+              <ul class="space-y-1 text-primary/60">
+                <li><span class="font-mono text-primary/80">WCREXUS2</span> &mdash; Weekly U.S. Crude Oil Exports (thousand barrels per day)</li>
+              </ul>
+            </div>
+            <p>
+              Tracks U.S. crude oil export volumes on a weekly basis. The trend is computed as the percentage difference between 20-week and 100-week moving averages. This series is not scored &mdash; it is displayed as a standalone energy market tracker.
+            </p>
+          </div>
         </div>
 
         <!-- Interpretation -->

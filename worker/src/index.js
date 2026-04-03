@@ -82,6 +82,38 @@ async function fetchGoldSeries() {
 }
 
 // ---------------------------------------------------------------------------
+// EIA crude oil exports fetch
+// ---------------------------------------------------------------------------
+
+async function fetchCrudeExports() {
+  const url = new URL('https://api.eia.gov/v2/petroleum/sum/sndw/data/');
+  url.searchParams.set('api_key', 'DEMO_KEY');
+  url.searchParams.set('frequency', 'weekly');
+  url.searchParams.set('data[0]', 'value');
+  url.searchParams.set('facets[series][]', 'WCREXUS2');
+  url.searchParams.set('sort[0][column]', 'period');
+  url.searchParams.set('sort[0][direction]', 'desc');
+  url.searchParams.set('length', String(OBSERVATION_COUNT));
+
+  const res = await fetch(url.toString(), {
+    headers: { 'User-Agent': 'MacroMonitor/1.0' },
+  });
+
+  if (!res.ok) {
+    throw new Error(`EIA fetch failed for WCREXUS2: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const rows = data.response?.data;
+  if (!rows || rows.length === 0) throw new Error('No crude export data from EIA');
+
+  return rows
+    .filter((r) => r.value != null)
+    .map((r) => ({ date: r.period, value: parseFloat(r.value) }))
+    .reverse(); // oldest first
+}
+
+// ---------------------------------------------------------------------------
 // Computation helpers
 // ---------------------------------------------------------------------------
 
@@ -397,6 +429,8 @@ Data:
 - Gold Spot: ${data.gold.inputs.gold}
 - Gold Trend (blended momentum+trend): ${data.gold.derived.gold_trend !== null ? data.gold.derived.gold_trend + '%' : 'N/A'}
 - Breakeven Trend: ${data.gold.derived.breakeven_trend !== null ? data.gold.derived.breakeven_trend + '%' : 'N/A'}
+- US Crude Oil Exports: ${data.crude_exports ? data.crude_exports.value + ' thousand barrels/day' : 'N/A'}
+- Crude Exports Trend: ${data.crude_exports?.trend !== null ? data.crude_exports.trend + '%' : 'N/A'}
 - USD Score: ${data.dollar.score} (Signal: ${data.dollar.signal}, Regime: ${data.dollar.regime})
 - Gold Score: ${data.gold.score} (Signal: ${data.gold.signal}, Regime: ${data.gold.regime})
 - Macro Regime: ${data.macro.regime}
@@ -473,13 +507,14 @@ export default {
         }
 
         // Fetch all series in parallel
-        const [dxySeries, us10ySeries, breakevenSeries, spxSeries, goldSeries] =
+        const [dxySeries, us10ySeries, breakevenSeries, spxSeries, goldSeries, crudeExportsSeries] =
           await Promise.all([
             fetchFredSeries(FRED_SERIES.dxy, fredKey),
             fetchFredSeries(FRED_SERIES.us10y, fredKey),
             fetchFredSeries(FRED_SERIES.breakeven, fredKey),
             fetchFredSeries(FRED_SERIES.spx, fredKey),
             fetchGoldSeries(),
+            fetchCrudeExports(),
           ]);
 
         // Compute everything
@@ -490,6 +525,35 @@ export default {
           spxSeries,
           goldSeries
         );
+
+        // Crude oil exports tracker — MA4 vs MA13 (1 month vs 1 quarter)
+        const crudeValues = crudeExportsSeries.map((d) => d.value);
+        const crudeLatest = crudeValues[crudeValues.length - 1];
+        const crudeMA4 = movingAverage(crudeValues, 4);
+        const crudeMA13 = movingAverage(crudeValues, 13);
+        const crudeTrend = crudeMA4 !== null && crudeMA13 !== null && crudeMA13 !== 0
+          ? ((crudeMA4 - crudeMA13) / crudeMA13) * 100
+          : null;
+        data.crude_exports = {
+          value: round(crudeLatest, 0),
+          trend: crudeTrend !== null ? round(crudeTrend, 2) : null,
+          date: crudeExportsSeries[crudeExportsSeries.length - 1]?.date || null,
+          history: crudeExportsSeries.map((d) => ({ date: d.date, value: round(d.value, 0) })),
+        };
+
+        // DXY and real yield time series for charts
+        data.dollar.dxy_history = dxySeries.map((d) => ({ date: d.date, value: round(d.value, 2) }));
+
+        const minLen = Math.min(us10ySeries.length, breakevenSeries.length);
+        data.dollar.real_yield_history = [];
+        for (let i = 0; i < minLen; i++) {
+          const yIdx = us10ySeries.length - minLen + i;
+          const bIdx = breakevenSeries.length - minLen + i;
+          data.dollar.real_yield_history.push({
+            date: us10ySeries[yIdx].date,
+            value: round(us10ySeries[yIdx].value - breakevenSeries[bIdx].value, 2),
+          });
+        }
 
         // Compute rolling score history
         const { usdHistory, goldHistory } = computeScoreHistory(
